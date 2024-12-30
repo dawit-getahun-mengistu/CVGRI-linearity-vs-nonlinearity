@@ -1,0 +1,15 @@
+# Ignore everything in the dataset folder
+dataset/*
+dataset/CUB_200_2011/*
+
+# Allow the CUB_200_2011 folder and the .placeholder file
+!dataset/CUB_200_2011/
+!dataset/CUB_200_2011/.placeholder
+
+# Allow .attr file in the dataset
+!dataset/.attr
+
+
+# venv
+.venv/*
+venv/*
