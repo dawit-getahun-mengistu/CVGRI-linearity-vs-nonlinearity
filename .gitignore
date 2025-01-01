@@ -9,6 +9,9 @@ dataset/CUB_200_2011/*
 # Allow .attr file in the dataset
 !dataset/.attr
 
+# model checkpoints
+model_checkpoints/*
+!model_checkpoints/.txt
 
 # venv
 .venv/*

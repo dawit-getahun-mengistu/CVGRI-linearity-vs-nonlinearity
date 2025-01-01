@@ -27,11 +27,10 @@ class CUBDataset(Dataset):
                            1 for line in f.readlines()]
 
         if num_classes is not None:
-            # Pick classes
+            # Pick random classes
             unique_classes = list(set(self.labels))
-
-            selected_classes = random.Random(random_state).sample(
-                unique_classes, num_classes)
+            selected_classes = random.Random(
+                random_state).sample(unique_classes, num_classes)
             print(f"Selected classes: {selected_classes}")
 
             # Filter images and labels for the selected classes
@@ -39,6 +38,13 @@ class CUBDataset(Dataset):
                 self.labels) if label in selected_classes]
             self.image_paths = [self.image_paths[i] for i in filtered_indices]
             self.labels = [self.labels[i] for i in filtered_indices]
+
+            # Remap labels to a continuous range [0, num_classes-1]
+            class_mapping = {cls: i for i, cls in enumerate(selected_classes)}
+            self.labels = [class_mapping[label] for label in self.labels]
+
+        # Convert labels to tensors
+        self.labels = torch.tensor(self.labels, dtype=torch.long)
 
     def __len__(self):
         return len(self.image_paths)
@@ -51,8 +57,6 @@ class CUBDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        # Convert label to tensor
-        label = torch.tensor(label, dtype=torch.long)
         return image, label
 
 
