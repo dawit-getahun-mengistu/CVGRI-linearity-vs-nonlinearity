@@ -3,17 +3,15 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import os
-import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-import seaborn as sns
+
+import random
 
 from cfg import device, dataset_path
+from utils import process_raw_images, visualize_embeddings
 
 
 class CUBDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
+    def __init__(self, root_dir, transform=None, num_classes=None, random_state=42):
         self.root_dir = root_dir
         self.transform = transform
 
@@ -27,6 +25,20 @@ class CUBDataset(Dataset):
         with open(labels_file, 'r') as f:
             self.labels = [int(line.strip().split()[1]) -
                            1 for line in f.readlines()]
+
+        if num_classes is not None:
+            # Pick classes
+            unique_classes = list(set(self.labels))
+
+            selected_classes = random.Random(random_state).sample(
+                unique_classes, num_classes)
+            print(f"Selected classes: {selected_classes}")
+
+            # Filter images and labels for the selected classes
+            filtered_indices = [i for i, label in enumerate(
+                self.labels) if label in selected_classes]
+            self.image_paths = [self.image_paths[i] for i in filtered_indices]
+            self.labels = [self.labels[i] for i in filtered_indices]
 
     def __len__(self):
         return len(self.image_paths)
@@ -44,67 +56,25 @@ class CUBDataset(Dataset):
         return image, label
 
 
-def process_raw_images(dataloader, device):
-    """Process raw images into a format suitable for PCA/t-SNE."""
-    features = []
-    labels = []
-
-    for images, batch_labels in dataloader:
-        # Move batch to device
-        images = images.to(device)
-        batch_labels = batch_labels.to(device)
-
-        # Reshape: (batch_size, pixels)
-        batch_features = images.view(images.size(0), -1)
-
-        # back to CPU for numpy conversion
-        features.append(batch_features.cpu().numpy())
-        labels.extend(batch_labels.cpu().numpy())
-
-    return np.vstack(features), np.array(labels)
-
-
-def visualize_embeddings(features, labels, method='pca', perplexity=30, n_components=2):
-    """Reduce dimensionality and visualize the embeddings."""
-
-    # First apply PCA for initial dimensionality reduction
-    if features.shape[1] > 50:
-        print(
-            f"Applying initial PCA to reduce dimensions from {features.shape[1]} to 50")
-        pca = PCA(n_components=50)
-        features = pca.fit_transform(features)
-
-    # Apply final dimensionality reduction
-    print(f"Applying {method.upper()} for final visualization")
-    if method.lower() == 'pca':
-        reducer = PCA(n_components=n_components)
-    else:  # t-SNE
-        reducer = TSNE(n_components=n_components, perplexity=perplexity)
-
-    embeddings = reducer.fit_transform(features)
-
-    plt.figure(figsize=(10, 8))
-    scatter = plt.scatter(embeddings[:, 0], embeddings[:, 1],
-                          c=labels, cmap='tab20', alpha=0.6)
-    plt.colorbar(scatter)
-    plt.title(f'CUB Dataset Raw Image Visualization using {method.upper()}')
-    plt.xlabel('Component 1')
-    plt.ylabel('Component 2')
-    plt.show()
-
-
 def main():
     print(f"Using device: {device}")
 
-    # Using smaller size for raw pixel visualization
+    # Define transformations
+    # transform = transforms.Compose([
+    #     transforms.Resize((227, 227)),
+    #     transforms.ToTensor()
+    # ])
     transform = transforms.Compose([
-
-        transforms.Resize((64, 64)),
-        transforms.ToTensor()
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225]),
     ])
 
-    # Load dataset
-    dataset = CUBDataset(root_dir=dataset_path, transform=transform)
+    num_classes = 2
+    dataset = CUBDataset(root_dir=dataset_path,
+                         transform=transform, num_classes=num_classes)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 
     # Process raw images
@@ -113,8 +83,12 @@ def main():
 
     # Visualize using both PCA and t-SNE
     print("Creating visualizations...")
-    visualize_embeddings(features, labels, method='pca')
-    visualize_embeddings(features, labels, method='tsne', perplexity=30)
+    visualize_embeddings(features, labels, method='pca', n_components=2)
+    visualize_embeddings(features, labels, method='pca', n_components=3)
+    visualize_embeddings(features, labels, method='tsne',
+                         perplexity=30, n_components=2)
+    visualize_embeddings(features, labels, method='tsne',
+                         perplexity=30, n_components=3)
 
 
 if __name__ == "__main__":
