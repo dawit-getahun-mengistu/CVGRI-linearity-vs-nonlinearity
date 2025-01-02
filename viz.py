@@ -325,6 +325,7 @@ def main():
                         help='Directory to save visualizations')
     parser.add_argument('--perplexity', type=float, default=30,
                         help='Perplexity parameter for t-SNE')
+    parser.add_argument('--accuracy', type=float, default=0.0)
 
     args = parser.parse_args()
 
@@ -343,7 +344,8 @@ def main():
         "Batch Size": args.batch_size,
         # "Use Features": args.use_features,
         "Conv Layers": num_conv_layers,
-        "ReLU Activations": num_relu
+        "ReLU Activations": num_relu,
+        "Accuracy": args.accuracy
     }
 
     transform = transforms.Compose([
