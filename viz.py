@@ -2,7 +2,7 @@ from PIL import Image
 import io
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from nn import AlexNet, DeepLinearConvNet
+from nn import AlexNet, AlexNetVariant4ReLUs, AlexNetVariant2ReLUs, DeepLinearConvNet
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -25,6 +25,8 @@ from feature_extraction import extract_features
 def get_model(model_name, num_classes):
     models = {
         'alexnet': AlexNet(num_classes),
+        'alexnet4': AlexNetVariant4ReLUs(num_classes),
+        'alexnet2': AlexNetVariant2ReLUs(num_classes),
         'lnrdeepconv': DeepLinearConvNet(3, num_classes)
     }
     return models.get(model_name.lower())
@@ -307,7 +309,7 @@ def get_model_info(model):
 
 def main():
     parser = argparse.ArgumentParser(description='Visualize model embeddings')
-    parser.add_argument('--model', type=str, required=True, choices=['alexnet', 'lnrdeepconv'],
+    parser.add_argument('--model', type=str, required=True, choices=['alexnet', 'alexnet4', 'alexnet2', 'lnrdeepconv'],
                         help='Model architecture to use')
     parser.add_argument('--checkpoint', type=str, required=True,
                         help='Path to model checkpoint')

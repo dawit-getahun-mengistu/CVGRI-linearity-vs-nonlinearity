@@ -1,4 +1,4 @@
-from nn import AlexNet, DeepLinearConvNet
+from nn import AlexNet, AlexNetVariant4ReLUs, AlexNetVariant2ReLUs, DeepLinearConvNet
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -85,6 +85,8 @@ def get_train_valid_test_loader(data_dir=dataset_path, num_classes=2, batch_size
 def get_model(model_name, num_classes, pretrained=False):
     models_dict = {
         'alexnet': AlexNet(num_classes) if not pretrained else models.alexnet(pretrained=True),
+        'alexnet4': AlexNetVariant4ReLUs(num_classes),
+        'alexnet2': AlexNetVariant2ReLUs(num_classes),
         'lnrdeepconv': DeepLinearConvNet(3, num_classes)
     }
 
@@ -232,7 +234,7 @@ def train(args):
 def main():
     parser = argparse.ArgumentParser(
         description='Train image classification models')
-    parser.add_argument('--model', type=str, required=True, choices=['alexnet', 'lnrdeepconv'],
+    parser.add_argument('--model', type=str, required=True, choices=['alexnet', 'alexnet4', 'alexnet2', 'lnrdeepconv'],
                         help='Model architecture to use')
     parser.add_argument('--data_dir', type=str, default=dataset_path,
                         help='Path to dataset')

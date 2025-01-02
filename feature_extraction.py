@@ -2,7 +2,7 @@ from PIL import Image
 import io
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from nn import AlexNet, DeepLinearConvNet
+from nn import AlexNet, AlexNetVariant4ReLUs, AlexNetVariant2ReLUs, DeepLinearConvNet
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -40,7 +40,7 @@ def get_last_linear_layer(model):
 
 def get_feature_layer(model):
     """Helper function to get the appropriate feature layer based on model architecture"""
-    if isinstance(model, AlexNet):
+    if isinstance(model, AlexNet) or isinstance(model, AlexNetVariant4ReLUs) or isinstance(model, AlexNetVariant2ReLUs):
         # Get features from the last convolutional layer (not fc1)
         return model.layer5
     elif isinstance(model, DeepLinearConvNet):
