@@ -3,6 +3,7 @@ import torch
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
+import torchvision.models as models
 import random
 import os
 import argparse
@@ -81,12 +82,19 @@ def get_train_valid_test_loader(data_dir=dataset_path, num_classes=2, batch_size
     return train_loader, valid_loader, test_loader
 
 
-def get_model(model_name, num_classes):
-    models = {
-        'alexnet': AlexNet(num_classes),
+def get_model(model_name, num_classes, pretrained=False):
+    models_dict = {
+        'alexnet': AlexNet(num_classes) if not pretrained else models.alexnet(pretrained=True),
         'lnrdeepconv': DeepLinearConvNet(3, num_classes)
     }
-    return models.get(model_name.lower())
+
+    model = models_dict.get(model_name.lower())
+    if pretrained and model_name.lower() == 'alexnet':
+        # Modify the classifier for the number of classes in the dataset
+        model.classifier[6] = torch.nn.Linear(
+            model.classifier[6].in_features, num_classes)
+
+    return model
 
 
 def save_model(model, model_name, optimizer, train_history, save_dir='model_checkpoints'):
@@ -115,7 +123,7 @@ def train(args):
         random_seed=args.seed
     )
 
-    model = get_model(args.model, args.num_classes)
+    model = get_model(args.model, args.num_classes, args.pretrained)
     if model is None:
         raise ValueError(f"Unknown model: {args.model}")
 
@@ -244,6 +252,8 @@ def main():
                         help='Patience for early stopping')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed')
+    parser.add_argument('--pretrained', action='store_true',
+                        help='Use pretrained AlexNet model')
 
     args = parser.parse_args()
 
