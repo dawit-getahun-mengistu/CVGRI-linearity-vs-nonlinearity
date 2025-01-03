@@ -95,7 +95,6 @@ if len(all_orig_images) > 0:
     print(f"Attack Success Rate: {success_rate:.2f}%")
     print(f"Total Misclassified: {misclass_count} out of {total_images}")
 
-    # Visualization code remains the same as before, but using the concatenated tensors
     # Display first 5 misclassified examples
     num_display = min(6, len(all_orig_images))
     # num_display = len(all_orig_images)
