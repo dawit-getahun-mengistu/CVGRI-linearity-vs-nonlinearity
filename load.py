@@ -3,7 +3,6 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import os
-
 import random
 
 from cfg import device, dataset_path
@@ -17,14 +16,22 @@ class CUBDataset(Dataset):
 
         images_file = os.path.join(root_dir, 'images.txt')
         labels_file = os.path.join(root_dir, 'image_class_labels.txt')
+        class_names_file = os.path.join(root_dir, 'classes.txt')
 
+        # Load image paths
         with open(images_file, 'r') as f:
             self.image_paths = [line.strip().split()[1]
                                 for line in f.readlines()]
 
+        # Load labels
         with open(labels_file, 'r') as f:
             self.labels = [int(line.strip().split()[1]) -
                            1 for line in f.readlines()]
+
+        # Load class names
+        with open(class_names_file, 'r') as f:
+            self.all_classes = [line.strip().split()[1]
+                                for line in f.readlines()]
 
         if num_classes is not None:
             # Pick random classes
@@ -42,6 +49,12 @@ class CUBDataset(Dataset):
             # Remap labels to a continuous range [0, num_classes-1]
             class_mapping = {cls: i for i, cls in enumerate(selected_classes)}
             self.labels = [class_mapping[label] for label in self.labels]
+
+            # Map selected classes to their names
+            self.classes = [self.all_classes[cls] for cls in selected_classes]
+        else:
+            # Use all classes
+            self.classes = self.all_classes
 
         # Convert labels to tensors
         self.labels = torch.tensor(self.labels, dtype=torch.long)
