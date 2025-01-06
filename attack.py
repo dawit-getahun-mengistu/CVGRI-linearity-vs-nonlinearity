@@ -43,11 +43,14 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 class_names = dataset.classes
 
 # Reuse your existing setup code
-model = get_model("alexnet2", num_classes).to(device)
+model = get_model("alexnet", num_classes).to(device)
 # eps = 0.001
 eps = 0.005
 # eps = 0.002
 attack = torchattacks.FGSM(model, eps=eps)
+
+# attack = torchattacks.AutoAttack(
+#     model, norm='Linf', eps=eps, version='standard')
 
 # Lists to store misclassified examples
 all_orig_images = []
