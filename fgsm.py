@@ -43,7 +43,9 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
 class_names = dataset.classes
 
 
-model = get_model("alexnet", num_classes).to(device)
+# model = get_model("alexnet", num_classes).to(device)
+
+model = get_model("lnrdeepconv", num_classes).to(device)
 model.eval()
 
 
@@ -100,92 +102,6 @@ def fgsm_attack_with_noise(model, inputs, labels, epsilon, noise_scale=0.05):
 def compute_perturbation_magnitude(original, adversarial):
     perturbation = (adversarial - original).detach().cpu().numpy()
     return np.linalg.norm(perturbation)
-
-
-# def visualize_adversarial_example(original, adversarial, index):
-#     original = original.detach().cpu().numpy()
-#     adversarial = adversarial.detach().cpu().numpy()
-#     preturbation = adversarial - original
-
-#     original_img = original.transpose(1, 2, 0)
-#     adversarial_img = adversarial.transpose(1, 2, 0)
-#     perturbation_img = preturbation.transpose(1, 2, 0)
-
-#     plt.figure(figsize=(12, 4))
-
-#     # Original Image
-#     plt.subplot(1, 3, 1)
-#     plt.imshow(
-#         original_img, cmap="gray" if original_img.shape[-1] == 1 else None)
-#     plt.title("Original Input")
-#     plt.axis("off")
-
-#     # Perturbation
-#     plt.subplot(1, 3, 2)
-#     plt.imshow(perturbation_img,
-#                cmap="gray" if perturbation_img.shape[-1] == 1 else None)
-#     plt.title("Perturbation")
-#     plt.axis("off")
-
-#     # Adversarial Image
-#     plt.subplot(1, 3, 3)
-#     plt.imshow(adversarial_img,
-#                cmap="gray" if adversarial_img.shape[-1] == 1 else None)
-#     plt.title("Adversarial Input")
-#     plt.axis("off")
-
-#     plt.suptitle(f"Adversarial Example {index + 1}")
-#     plt.show()
-
-# def visualize_grid(sorted_examples, original_labels, adversarial_labels, num_rows=2, num_cols=3):
-
-#     plt.figure(figsize=(15, 5 * num_rows))
-
-#     for i in range(num_rows * num_cols):
-#         if i >= len(sorted_examples):
-#             break
-#         original, adversarial = sorted_examples[i]
-#         original_label = original_labels[i]
-#         adversarial_label = adversarial_labels[i]
-
-#         perturbation = adversarial - original
-
-#         # Compute perturbation for visualization
-#         mean = np.array([0.485, 0.456, 0.406]).reshape(
-#             1, 1, 3)  # Shape (1, 1, 3)
-#         std = np.array([0.229, 0.224, 0.225]).reshape(
-#             1, 1, 3)  # Shape (1, 1, 3)
-
-#         perturbation = (adversarial - original).cpu().detach().numpy()
-#         perturbation = np.transpose(perturbation, (1, 2, 0))  # (H, W, C)
-#         perturbation = (perturbation * std) + mean  # Denormalize
-#         perturbation_img = np.clip(perturbation, 0, 1)
-
-#         original_img = original.transpose(1, 2, 0)
-#         adversarial_img = adversarial.transpose(1, 2, 0)
-#         # perturbation_img = denormalized.transpose(1, 2, 0)
-
-#         # Plot each example
-#         plt.subplot(num_rows, num_cols * 3, i * 3 + 1)
-#         plt.imshow(
-#             original_img, cmap="gray" if original_img.shape[-1] == 1 else None)
-#         plt.title(f"Original\nLabel: {original_label}")
-#         plt.axis("off")
-
-#         plt.subplot(num_rows, num_cols * 3, i * 3 + 2)
-#         plt.imshow(perturbation_img,
-#                    cmap="gray" if perturbation_img.shape[-1] == 1 else None)
-#         plt.title("Perturbation")
-#         plt.axis("off")
-
-#         plt.subplot(num_rows, num_cols * 3, i * 3 + 3)
-#         plt.imshow(adversarial_img,
-#                    cmap="gray" if adversarial_img.shape[-1] == 1 else None)
-#         plt.title(f"Adversarial\nMisclassified: {adversarial_label}")
-#         plt.axis("off")
-
-#     plt.tight_layout()
-#     plt.show()
 
 
 def visualize_grid(sorted_examples, original_labels, adversarial_labels, num_rows=2, num_cols=3):
