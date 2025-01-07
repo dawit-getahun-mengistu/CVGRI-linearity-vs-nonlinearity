@@ -13,6 +13,10 @@ dataset/CUB_200_2011/*
 model_checkpoints/*
 !model_checkpoints/.txt
 
+# pretrained
+pretrained/*
+!pretrained/.MD
+
 # venv
 .venv/*
 venv/*
