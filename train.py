@@ -129,6 +129,23 @@ def train(args):
     model = get_model(args.model, args.num_classes, args.pretrained)
     if model is None:
         raise ValueError(f"Unknown model: {args.model}")
+    if 'alexnet' in args.model:
+        weights_path = "./pretrained/alexnet/alexnet_imagenet.pth"
+        # model.load_state_dict(torch.load(weights_path))
+        pretrained_weights = torch.load(weights_path)
+        model_state_dict = model.state_dict()
+        new_pretrained_weights = {}
+        for k, v in pretrained_weights.items():
+            # Example mapping for feature extractor
+            new_key = k.replace("features", "layer1")
+            # Example mapping for classifier
+            new_key = new_key.replace("classifier", "fc")
+            if new_key in model_state_dict:
+                new_pretrained_weights[new_key] = v
+
+        filtered_weights = {k: v for k, v in pretrained_weights.items(
+        ) if k in new_pretrained_weights and new_pretrained_weights[k].shape == v.shape}
+        model.load_state_dict(filtered_weights, strict=False)
 
     model = model.to(device)
     criterion = torch.nn.CrossEntropyLoss()
