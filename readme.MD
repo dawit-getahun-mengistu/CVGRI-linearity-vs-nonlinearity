@@ -1,9 +1,20 @@
+# Table of Contents
+1. [INTRODUCTION](#introduction)
+2. [BACKGROUND](#background)
+3. [EXPLAINING ADVERSARIAL IMAGES](#explaining-adversarial-images)
+4. [FRAMEWORK](#framework)
+5. [RESULTS](#results)
+6. [CONCLUSION](#conclusion)
+7. [REFERENCES](#references)
+
+
 # INTRODUCTION
 
 
 Current systems that utilize state-of-the art deep learning techniques have shown remarkable performance in vision and text tasks. We communicate with these systems and have made them part of our daily routines. Without a significant overlap in the semantics of our exchange, the communication would have been impossible. But when asking deeper questions (no pun intended) in how we humans and machines can extract the same meaning from an input or a query, we find that sometimes the same semantic information might not be extracted.
 
 ![Pandas Adversarial Example (Goodfellow(2014))](static/imgs/image3.png "Pandas Adversarial Example (Goodfellow(2014))")
+
 *Fig 1: Adversarial Example (Goodfellow(2014))*
 
 In figure1, the model initially classified the input image as a panda with a 57.7% confidence. But after the image was manipulated by adding a very small perturbation that is imperceptible to the human eye, the resulting image was misclassified as a gibbon by the model with a very high 99.3% confidence. And researchers found that this phenomenon was not an isolated random occurrence but rather an inherent flaw of neural networks and how they learn features. In fact, the same perturbations can cause models with various architectures to misclassify input images even when the dataset is entirely different.
@@ -20,6 +31,7 @@ The most intriguing part of this discovery was that these perturbations can be c
 As you can expect, this has very high implications in safety and regulations for AI systems that operate in the real-world. (Kumar et al, 2021) were able to conduct a black box attack of autonomous vehicles and make the system understand the ‘stop’ sign as a ‘yield’ sign. 
 
 ![black box attack of autonomous vehicles](static/imgs/image10.png "black box attack of autonomous vehicles")
+
 *Fig 2: black box attack of autonomous vehicles (Kumar et al, 2021)*
 
 So what is the cause of this phenomenon? And even more importantly, how can we design robust models that can resist these perturbations? 
@@ -55,6 +67,7 @@ Rozsa et al. (2016): This work hypothesizes that adversarial perturbations exist
 A key concept in adversarial machine learning is adversarial transferability, where perturbations computed for one model can transfer to another. The existence of universal perturbations that are input agnostic has been shown (Moosavi-Dezfooli et al 2017). So it is natural to assess this adversarial subspace that has plagued virtually any input space. “Adversarial Examples Are Not Bugs, They Are Features” (Ilyas et al., 2019) proposed a framework claiming most standard datasets contain features deep networks are learning that are not robust in the sense that they are brittle and incomprehensible to humans  but also highly predictive. These features are statistically useful but not robust to small perturbations. We can say for example the presence of pointed ears in cats is a robust feature. In contrast, non-robust features might include subtle patterns in pixel values that can be easily disrupted.
 
 ![robus and non-robust features (Ilyas et al., 2019)](static/imgs/image7.png "robus and non-robust features (Ilyas et al., 2019)")
+
 *Fig 4: robus and non-robust features (Ilyas et al., 2019)*
 
 It was shown in their work that input data X can be decomposed into two components: Xrobust and Xnon-robust. The non-robust dataset resulted in good standard accuracy but poor performance in robustness. So the explanation that was provided by them was that non-robust features were responsible for adversarial examples. 
@@ -77,6 +90,7 @@ y: true label of the image
 x' = x + ε * sign(∇xJ(θ, x, y)) 
 
 ![FGSM attack example on a dog image](static/imgs/image11.png "FGSM attack example on a dog image")
+
 *Fig 5: FGSM attack example*
 
 
@@ -127,6 +141,7 @@ We then applied the FGSM method to attack each of the resulting models with vary
   <img src="static/imgs/image1.png" alt="sample of adversarial examples generated " width="45%" />
   <img src="static/imgs/image6.png" alt="sample of adversarial examples generated " width="45%" />
 </p>
+
 *Fig 9: sample of adversarial examples generated using FGSM on AlexNet(4ReLU) with epsilon values 0.1 and 0.15*
 
 | Epsilon Values | AlexNet (7ReLU) | AlexNet (4ReLU) | AlexNet (2ReLU) | AlexNet (0ReLU) |
@@ -135,7 +150,7 @@ We then applied the FGSM method to attack each of the resulting models with vary
 | 0.1*           | 0.00%           | 0.00%           | 0.00%           | 0.00%           |
 | 0.15*          | 0.00%           | 00.00%          | 0.00%           | 0.00%           |
 
-*We are able to generate adversarial examples that were misclassified 100% of the time.*
+*We are able to generate adversarial examples that were misclassified 100% of the time.
 
 *Table 2: Table showing performance against adversarial attack (FGSM).*
 
