@@ -87,7 +87,73 @@ def compute_accuracy(model, dataloader):
     return correct / total
 
 
-def visualize_grid(sorted_examples, original_labels, adversarial_labels, epsilon, output_dir, model_name, num_rows=2, num_cols=3):
+# def visualize_grid(sorted_examples, original_labels, adversarial_labels, epsilon, output_dir, model_name, num_rows=2, num_cols=3):
+#     num_examples = len(sorted_examples)
+#     num_pages = ceil(num_examples / (num_rows * num_cols))
+
+#     for page in range(num_pages):
+#         plt.figure(figsize=(15, 5 * num_rows))
+
+#         start_idx = page * num_rows * num_cols
+#         end_idx = min(start_idx + num_rows * num_cols, num_examples)
+
+#         for i, idx in enumerate(range(start_idx, end_idx)):
+#             original, adversarial = sorted_examples[idx]
+#             original_label = original_labels[idx]
+#             adversarial_label = adversarial_labels[idx]
+
+#             if original.ndim == 4:
+#                 original, adversarial = original.squeeze(
+#                     0), adversarial.squeeze(0)
+
+#             # Compute perturbation
+#             perturbation = (adversarial - original).cpu().detach().numpy()
+#             # perturbation = np.transpose(perturbation, (1, 2, 0))
+#             perturbation = np.transpose(perturbation * 0.5 + 0.5, (1, 2, 0))
+
+#             # Prepare images
+#             original_img = original.cpu().detach().numpy().transpose(1, 2, 0)
+#             adversarial_img = adversarial.cpu().detach().numpy().transpose(1, 2, 0)
+
+#             # Plot original image
+#             plt.subplot(num_rows, num_cols * 3, i * 3 + 1)
+#             plt.imshow(
+#                 original_img, cmap="gray" if original_img.shape[-1] == 1 else None)
+#             plt.title(f"Original\nLabel: {original_label}")
+#             plt.axis("off")
+
+#             # Plot perturbation
+#             plt.subplot(num_rows, num_cols * 3, i * 3 + 2)
+#             plt.imshow(
+#                 perturbation, cmap="gray" if perturbation.shape[-1] == 1 else None)
+#             plt.title("Perturbation")
+#             plt.axis("off")
+
+#             # Plot adversarial image
+#             plt.subplot(num_rows, num_cols * 3, i * 3 + 3)
+#             plt.imshow(adversarial_img,
+#                        cmap="gray" if adversarial_img.shape[-1] == 1 else None)
+#             plt.title(f"Adversarial\nMisclassified: {adversarial_label}")
+#             plt.axis("off")
+
+#         plt.tight_layout()
+#         page_path = f"{output_dir}/{model_name}/epsilon_{epsilon}/adversarial_examples_page_{page + 1}.png"
+#         os.makedirs(os.path.dirname(page_path), exist_ok=True)
+#         plt.savefig(page_path)
+#         plt.close()
+
+def get_confidence_scores(model, inputs, labels):
+    """Get confidence scores for both true label and predicted label."""
+    with torch.no_grad():
+        outputs = model(inputs)
+        probs = nn.functional.softmax(outputs, dim=1)
+        true_confidences = probs[range(len(labels)), labels]
+        pred_labels = probs.argmax(dim=1)
+        pred_confidences = probs[range(len(pred_labels)), pred_labels]
+        return true_confidences, pred_confidences, pred_labels
+
+
+def visualize_grid(sorted_examples, original_labels, adversarial_labels, epsilon, output_dir, model_name, model, num_rows=2, num_cols=3):
     num_examples = len(sorted_examples)
     num_pages = ceil(num_examples / (num_rows * num_cols))
 
@@ -102,14 +168,28 @@ def visualize_grid(sorted_examples, original_labels, adversarial_labels, epsilon
             original_label = original_labels[idx]
             adversarial_label = adversarial_labels[idx]
 
+            # Get confidence scores for original image
+            orig_true_conf, orig_pred_conf, _ = get_confidence_scores(
+                model, original.unsqueeze(0), torch.tensor(
+                    [original_label]).to(device)
+            )
+
+            # Get confidence scores for adversarial image
+            adv_true_conf, adv_pred_conf, _ = get_confidence_scores(
+                model, adversarial.unsqueeze(0), torch.tensor(
+                    [original_label]).to(device)
+            )
+
             if original.ndim == 4:
                 original, adversarial = original.squeeze(
                     0), adversarial.squeeze(0)
 
             # Compute perturbation
             perturbation = (adversarial - original).cpu().detach().numpy()
-            # perturbation = np.transpose(perturbation, (1, 2, 0))
             perturbation = np.transpose(perturbation * 0.5 + 0.5, (1, 2, 0))
+
+            # Calculate perturbation magnitude
+            l2_norm = torch.norm(adversarial - original).item()
 
             # Prepare images
             original_img = original.cpu().detach().numpy().transpose(1, 2, 0)
@@ -119,21 +199,24 @@ def visualize_grid(sorted_examples, original_labels, adversarial_labels, epsilon
             plt.subplot(num_rows, num_cols * 3, i * 3 + 1)
             plt.imshow(
                 original_img, cmap="gray" if original_img.shape[-1] == 1 else None)
-            plt.title(f"Original\nLabel: {original_label}")
+            plt.title(
+                f"Original\nLabel: {original_label}\nTrue conf: {orig_true_conf.item():.3f}\nPred conf: {orig_pred_conf.item():.3f}")
             plt.axis("off")
 
             # Plot perturbation
             plt.subplot(num_rows, num_cols * 3, i * 3 + 2)
             plt.imshow(
                 perturbation, cmap="gray" if perturbation.shape[-1] == 1 else None)
-            plt.title("Perturbation")
+            plt.title(f"Perturbation\nL2 norm: {l2_norm:.3f}")
+            # plt.title(f"Perturbation")
             plt.axis("off")
 
             # Plot adversarial image
             plt.subplot(num_rows, num_cols * 3, i * 3 + 3)
             plt.imshow(adversarial_img,
                        cmap="gray" if adversarial_img.shape[-1] == 1 else None)
-            plt.title(f"Adversarial\nMisclassified: {adversarial_label}")
+            plt.title(
+                f"Adversarial\nMisclassified: {adversarial_label}\nTrue conf: {adv_true_conf.item():.3f}\nPred conf: {adv_pred_conf.item():.3f}")
             plt.axis("off")
 
         plt.tight_layout()
@@ -219,8 +302,10 @@ def main():
         sorted_adversarial_labels = [
             misclassified_preds[i].item() for i in sorted_indices]
 
+        # visualize_grid(sorted_misclassified_examples, sorted_original_labels,
+        #                sorted_adversarial_labels, epsilon, args.output_dir, args.model)
         visualize_grid(sorted_misclassified_examples, sorted_original_labels,
-                       sorted_adversarial_labels, epsilon, args.output_dir, args.model)
+                       sorted_adversarial_labels, epsilon, args.output_dir, args.model, model)
 
     # Print final summary
     print("Accuracies for different epsilons:")

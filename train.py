@@ -136,9 +136,9 @@ def train(args):
         model_state_dict = model.state_dict()
         new_pretrained_weights = {}
         for k, v in pretrained_weights.items():
-            # Example mapping for feature extractor
+
             new_key = k.replace("features", "layer1")
-            # Example mapping for classifier
+
             new_key = new_key.replace("classifier", "fc")
             if new_key in model_state_dict:
                 new_pretrained_weights[new_key] = v
@@ -148,6 +148,7 @@ def train(args):
         model.load_state_dict(filtered_weights, strict=False)
 
     model = model.to(device)
+    print(f"Model loaded Correctly")
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(
         model.parameters(),
