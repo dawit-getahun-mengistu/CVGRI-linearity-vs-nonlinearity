@@ -81,13 +81,16 @@ In General, There are two types of attacks, White-box attacks and Black-box atta
 ### FGSM
 
 FGSM leverages the gradients of the model's loss function with respect to the input image.
-Gradients indicate the direction of the steepest ascent or descent of the loss. Calculate the sign of each element in the gradient vector (positive, negative, or zero). Then multiply the sign of the gradient by a small constant (epsilon, ϵ) to create the perturbation. The mathematical representation:
-x: original input image  
-J(θ, x, y): loss function  
-θ: model's parameters  
-y: true label of the image
+Gradients indicate the direction of the steepest ascent or descent of the loss. Calculate the sign of each element in the gradient vector (positive, negative, or zero). Then multiply the sign of the gradient by a small constant (epsilon, ϵ) to create the perturbation. 
 
-x' = x + ε * sign(∇xJ(θ, x, y)) 
+        The mathematical representation:
+
+                x: original input image  
+                J(θ, x, y): loss function  
+                θ: model's parameters  
+                y: true label of the image
+
+                x' = x + ε * sign(∇xJ(θ, x, y)) 
 
 ![FGSM attack example on a dog image](static/imgs/image11.png "FGSM attack example on a dog image")
 
