@@ -71,7 +71,7 @@ A key concept in adversarial machine learning is adversarial transferability, wh
 
 ![robus and non-robust features (Ilyas et al., 2019)](static/imgs/image7.png "robus and non-robust features (Ilyas et al., 2019)")
 
-*Fig 4: robus and non-robust features (Ilyas et al., 2019)*
+*Fig 4: robust and non-robust features (Ilyas et al., 2019)*
 
 It was shown in their work that input data X can be decomposed into two components: Xrobust and Xnon-robust. The non-robust dataset resulted in good standard accuracy but poor performance in robustness. So the explanation that was provided by them was that non-robust features were responsible for adversarial examples. 
 
